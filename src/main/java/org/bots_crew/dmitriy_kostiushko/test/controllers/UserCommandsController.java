@@ -5,9 +5,9 @@ import org.bots_crew.dmitriy_kostiushko.test.enteties.Book;
 import org.bots_crew.dmitriy_kostiushko.test.service.BookShelfService;
 
 import java.io.Console;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,19 +16,14 @@ public class UserCommandsController {
     private BookShelfService bookShelfService;
     private UserCommand[] userCommands = new UserCommand[5];
 
-    private final String greetingMessage = "Welcome to the BookShelf application.%n" +
-            "To view books in your library use command: all books. %n" +
-            "To add a new book to the library please use command new book and follow instructions. %n" +
-            "To delete book from the library use command remove book and follow instructions %n" +
-            "Thank you. %n";
-
     private Pattern singleDigitPattern = Pattern.compile("^(?<num>\\d+)$");
 
     private Pattern deleteCommandCompiler =
-            Pattern.compile("remove\\s*(?<book>[\\w\\s.-_]+)", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("remove\\s+(?<book>.+)", Pattern.CASE_INSENSITIVE);
+
 
     private Pattern newBookCommandCompiler =
-            Pattern.compile("add\\s*(?<author>[\\w\\s.-_]+)?\\s*(\"(?<book>[\\d\\w\\s_.-]+)\")?", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("add\\s+(?<author>[^\"]+\\S)?\\s+(\"(?<book>[^\"]+)\")?", Pattern.CASE_INSENSITIVE);
 
     private Pattern help =
             Pattern.compile("help", Pattern.CASE_INSENSITIVE);
@@ -47,14 +42,6 @@ public class UserCommandsController {
     public UserCommandsController(BookShelfService bookShelfService) {
         this.bookShelfService = bookShelfService;
         fillComandsHashTable();
-        console = System.console();
-        if (console == null) {
-            System.out.println("Application must be started inside of the command line");
-            System.exit(1);
-        } else {
-            console.format(greetingMessage);
-            this.readCmd();
-        }
     }
 
     private void fillComandsHashTable() {
@@ -65,10 +52,20 @@ public class UserCommandsController {
         userCommands[4] = new UserCommand(helpCommandCompiler, this::responseToHelp);
     }
 
+    public String convertWindows1251ToUtf8String(String winStr) {
+        byte[] in = winStr.getBytes(StandardCharsets.UTF_8);
+        String out = new String(in, StandardCharsets.UTF_8);
+        return out;
+    }
 
-    private void readCmd() {
-        Scanner consoleInScanner = new Scanner(System.in);
+    public void readCmd(Console console) {
+        this.console = console;
+        //Scanner consoleInScanner = new Scanner(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+        Scanner consoleInScanner = new Scanner(System.in, "Windows-1251");
         String command = consoleInScanner.nextLine();
+        command = convertWindows1251ToUtf8String(command);
+        console.format(command);
+
         boolean matchFound = false;
         for (UserCommand userCommand : userCommands) {
             Pattern pattern = userCommand.getCommandPattern();
@@ -82,7 +79,7 @@ public class UserCommandsController {
             console.format("Sorry i cannot understand the command, please try again.%n");
             this.responseToHelp(null);
         }
-        readCmd();
+        readCmd(console);
     }
 
     private void responseToHelp(Matcher matcher) {
@@ -114,8 +111,10 @@ public class UserCommandsController {
     }
 
     private void responseToNewBook(Matcher matcher) {
-        String bookName = matcher.group("book");
-        String authorsName = matcher.group("author");
+        String bookName = null;
+        String authorsName = null;
+        bookName = matcher.group("book");
+        authorsName = matcher.group("author");
 
         boolean authorsNameIsEmptyOrNull = authorsName == null || authorsName.isEmpty();
         boolean bookNameIsEmptyOrNull = bookName == null || bookName.isEmpty();
@@ -192,25 +191,6 @@ public class UserCommandsController {
         }
     }
 
-    private int getSingleNumInput(Predicate<Integer> test, String errorMessage) {
-        String numInput = console.readLine();
-        Matcher numMathcer = singleDigitPattern.matcher(numInput);
-        boolean matchesCondition = false;
-        int matchedNumber = 0;
-        while (!matchesCondition) {
-            if (numMathcer.matches()) {
-                int enteredNumber = Integer.valueOf(numMathcer.group("num"));
-                matchesCondition = test.test(enteredNumber);
-                if (!matchesCondition) {
-                    console.format(errorMessage);
-                }
-                matchedNumber = enteredNumber;
-            } else {
-                console.format("This does not look like a number. Please try again.%n");
-            }
-        }
-        return matchedNumber;
-    }
 
     private boolean getConsoleConfirmation(String message) {
         console.format(message);
@@ -221,8 +201,21 @@ public class UserCommandsController {
         else return getConsoleConfirmation(message);
     }
 
+
     private void exitFromProgram(Matcher matcher) {
         console.format("Bye =)%n");
         System.exit(1);
     }
+
+
+    public Pattern getNewBookCommandCompiler() {
+        return newBookCommandCompiler;
+    }
+
+
+    public Pattern getDeleteCommandCompiler() {
+        return deleteCommandCompiler;
+    }
+
+
 }
