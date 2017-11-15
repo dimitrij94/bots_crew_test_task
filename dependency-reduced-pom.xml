@@ -24,9 +24,18 @@
             <goals>
               <goal>shade</goal>
             </goals>
+            <configuration>
+              <transformers>
+                <transformer>
+                  <manifestEntries>
+                    <Main-Class>${java.main.class}</Main-Class>
+                    <Build-Number>01</Build-Number>
+                  </manifestEntries>
+                </transformer>
+              </transformers>
+            </configuration>
           </execution>
         </executions>
-        <configuration />
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
