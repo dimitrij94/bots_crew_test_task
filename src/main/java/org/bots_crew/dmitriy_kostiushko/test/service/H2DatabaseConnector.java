@@ -13,12 +13,12 @@ public class H2DatabaseConnector {
             "(id INTEGER NOT NULL AUTO_INCREMENT, book_name VARCHAR(255), author_name VARCHAR(255), PRIMARY KEY (id))";
 
     public H2DatabaseConnector() {
-        this.initDBScheme();
         try {
             Class.forName("org.h2.Driver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+        this.initDBScheme();
     }
 
     public Connection establishConnection() {

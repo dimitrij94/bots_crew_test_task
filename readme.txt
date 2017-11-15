@@ -1,4 +1,6 @@
-To run the app use the following commands
+To run the app on Windows just clone it and double click on BookShelf.bat
+
+For any other operating system
 
 mvn package
 java -jar target/bots_crew_test_task-1.0-SNAPSHOT

@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="bots_crew_test_task:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/bots_crew_test_task_jar</output-path>
+    <root id="archive" name="bots_crew_test_task.jar">
+      <element id="module-output" name="bots_crew_test_task" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/h2database/h2/1.4.196/h2-1.4.196.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
