@@ -14,16 +14,18 @@ public class H2DatabaseConnector {
 
     public H2DatabaseConnector() {
         this.initDBScheme();
+        try {
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     public Connection establishConnection() {
         Connection connection = null;
         try {
-            Class.forName("org.h2.Driver");
             connection = DriverManager.getConnection(jdbcUrl, userName, password);
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         } catch (SQLException e) {
             e.printStackTrace();
         }
