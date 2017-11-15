@@ -6,7 +6,6 @@ import org.bots_crew.dmitriy_kostiushko.test.service.H2DatabaseConnector;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -33,13 +32,6 @@ public class UserCommandsControllerTest extends TestCase {
         }
     }
 
-    public void testConverString() {
-
-        String testingString = simulateConsoleInput("Щось не йде ця..");
-        byte[] in = testingString.getBytes(StandardCharsets.UTF_8);
-        String out = new String(in, StandardCharsets.UTF_8);
-        assertTrue(String.format("%s != %s", testingString, out), Objects.equals(testingString, out));
-    }
 
     public void testRemoveBookPattern() {
         Pattern removeBookPattern = this.controller.getDeleteCommandCompiler();

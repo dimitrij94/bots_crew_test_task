@@ -23,7 +23,7 @@ public class UserCommandsController {
 
 
     private Pattern newBookCommandCompiler =
-            Pattern.compile("add\\s+(?<author>[^\"]+\\S)?\\s+(\"(?<book>[^\"]+)\")?", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("add\\s*(?<author>[^\"]+\\S)?\\s+(\"(?<book>[^\"]+)\")?", Pattern.CASE_INSENSITIVE);
 
     private Pattern help =
             Pattern.compile("help", Pattern.CASE_INSENSITIVE);
@@ -63,8 +63,6 @@ public class UserCommandsController {
         //Scanner consoleInScanner = new Scanner(new InputStreamReader(System.in, StandardCharsets.UTF_8));
         Scanner consoleInScanner = new Scanner(System.in, "Windows-1251");
         String command = consoleInScanner.nextLine();
-        command = convertWindows1251ToUtf8String(command);
-        console.format(command);
 
         boolean matchFound = false;
         for (UserCommand userCommand : userCommands) {
