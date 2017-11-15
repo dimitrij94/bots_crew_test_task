@@ -5,7 +5,7 @@ import org.bots_crew.dmitriy_kostiushko.test.enteties.Book;
 import org.bots_crew.dmitriy_kostiushko.test.service.BookShelfService;
 
 import java.io.Console;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -103,7 +103,7 @@ public class UserCommandsController {
     }
 
     private void responseToViewAll(Matcher matcher) {
-        ArrayList<Book> foundBooks = this.bookShelfService.findAllBooks();
+        List<Book> foundBooks = this.bookShelfService.findAllBooks();
         if (foundBooks.isEmpty())
             console.format("Unfortunately there are no books in library yet, please use \"add\" command to fix that.%n");
         else {
@@ -141,7 +141,7 @@ public class UserCommandsController {
                     "Type \"help\" to see how to use each command%n");
             return;
         }
-        ArrayList<Book> existingBooks = this.bookShelfService.findByNameAndAuthor(bookName, authorsName);
+        List<Book> existingBooks = this.bookShelfService.findByNameAndAuthor(bookName, authorsName);
         if (!existingBooks.isEmpty()) {
             console.format("Book of the author %s \" %s \" already exists in the library%n", authorsName, bookName);
             return;
@@ -154,7 +154,7 @@ public class UserCommandsController {
         String bookName = matcher.group("book");
 
         console.format("Deleting the book %s%n", bookName);
-        ArrayList<Book> foundBooks = this.bookShelfService.findByName(bookName);
+        List<Book> foundBooks = this.bookShelfService.findByName(bookName);
         if (foundBooks.isEmpty())
             console.format("No books were found with name %s.%n", bookName);
         else if (foundBooks.size() > 1) {

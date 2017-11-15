@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class BookShelfService {
 
@@ -37,8 +38,8 @@ public class BookShelfService {
         return new Book();
     }
 
-    public ArrayList<Book> findAllBooks() {
-        ArrayList<Book> books = null;
+    public List<Book> findAllBooks() {
+        List<Book> books = null;
         try (
                 Connection connection = this.connector.establishConnection();
                 PreparedStatement findStatement = connection.prepareStatement(findSQL)
@@ -51,8 +52,8 @@ public class BookShelfService {
         return books;
     }
 
-    public ArrayList<Book> findByName(String name) {
-        ArrayList<Book> books = null;
+    public List<Book> findByName(String name) {
+        List<Book> books = null;
         try (
                 Connection connection = this.connector.establishConnection();
                 PreparedStatement findByNameStatement = connection.prepareStatement(findByNameSQL)
@@ -67,8 +68,8 @@ public class BookShelfService {
     }
 
 
-    private ArrayList<Book> parseResultSet(ResultSet foundBooks) throws SQLException {
-        ArrayList<Book> books = null;
+    private List<Book> parseResultSet(ResultSet foundBooks) throws SQLException {
+        List<Book> books = null;
         if (foundBooks != null) {
             books = new ArrayList<>(10);
             while (foundBooks.next()) {
@@ -96,7 +97,7 @@ public class BookShelfService {
         return false;
     }
 
-    public ArrayList<Book> findByNameAndAuthor(String bookName, String authorsName) {
+    public List<Book> findByNameAndAuthor(String bookName, String authorsName) {
         try (
                 Connection connection = this.connector.establishConnection();
                 PreparedStatement findStatement = connection.prepareStatement(findByNameAndAuthorSQL)
