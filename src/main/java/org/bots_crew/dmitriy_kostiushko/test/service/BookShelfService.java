@@ -42,9 +42,10 @@ public class BookShelfService {
         List<Book> books = null;
         try (
                 Connection connection = this.connector.establishConnection();
-                PreparedStatement findStatement = connection.prepareStatement(findSQL)
+                PreparedStatement findStatement = connection.prepareStatement(findSQL);
+                ResultSet foundBooks = findStatement.executeQuery()
+
         ) {
-            ResultSet foundBooks = findStatement.executeQuery();
             books = parseResultSet(foundBooks);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -56,10 +57,10 @@ public class BookShelfService {
         List<Book> books = null;
         try (
                 Connection connection = this.connector.establishConnection();
-                PreparedStatement findByNameStatement = connection.prepareStatement(findByNameSQL)
+                PreparedStatement findByNameStatement = fillFindByNameStatement(connection, name);
+                ResultSet foundBooks = findByNameStatement.executeQuery()
         ) {
             findByNameStatement.setString(1, name);
-            ResultSet foundBooks = findByNameStatement.executeQuery();
             books = parseResultSet(foundBooks);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -67,6 +68,11 @@ public class BookShelfService {
         return books;
     }
 
+    private PreparedStatement fillFindByNameStatement(Connection con, String name) throws SQLException {
+        PreparedStatement ps = con.prepareStatement(findByNameSQL);
+        ps.setString(1, name);
+        return ps;
+    }
 
     private List<Book> parseResultSet(ResultSet foundBooks) throws SQLException {
         List<Book> books = null;
