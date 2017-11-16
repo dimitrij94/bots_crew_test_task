@@ -1,10 +1,10 @@
 package org.bots_crew.dmitriy_kostiushko.test.service;
 
+import java.util.ArrayDeque;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
 
 public class MockCommandLineService implements CommandLineInterface {
-    private Queue<String> nextMessages = new ArrayBlockingQueue<>(10);
+    private Queue<String> nextMessages = new ArrayDeque<>(10);
 
     @Override
     public String getUserCommand() {

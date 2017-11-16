@@ -108,21 +108,15 @@ public class UserCommandsController {
     }
 
     private void responseToNewBook(Matcher matcher) {
-        String bookName = null;
-        String authorsName = null;
-        bookName = matcher.group("book");
-        authorsName = matcher.group("author");
+        String bookName = matcher.group("book");
+        String authorsName = matcher.group("author");
+
+
         boolean authorsNameIsEmptyOrNull = authorsName == null || authorsName.isEmpty();
         boolean bookNameIsEmptyOrNull = bookName == null || bookName.isEmpty();
+        bookName = bookNameIsEmptyOrNull ? "Unknown" : bookName;
+        authorsName = authorsNameIsEmptyOrNull ? "Unknown" : authorsName;
 
-        if (bookNameIsEmptyOrNull) {
-            bookName = "Unknown";
-        }
-
-        if (authorsNameIsEmptyOrNull) {
-            authorsName = "Unknown";
-        }
-        console.format("Adding a book name:%s; author:%s%n", bookName, authorsName);
 
         if (bookNameIsEmptyOrNull && authorsNameIsEmptyOrNull) {
             console.format(
@@ -130,12 +124,16 @@ public class UserCommandsController {
                             "Type \"help\" to see how to use each command%n");
             return;
         }
+
+        console.format("Adding a book name:%s; author:%s%n", bookName, authorsName);
+
         if (bookNameIsEmptyOrNull && !authorsNameIsEmptyOrNull) {
             console.format("Please separate name of the book inside of quotation marks, like this:%n " +
                     "authors_name \"the name of a book\"%n" +
                     "Type \"help\" to see how to use each command%n");
             return;
         }
+
         List<Book> existingBooks = this.bookShelfService.findByNameAndAuthor(bookName, authorsName);
         if (!existingBooks.isEmpty()) {
             console.format("Book of the author %s \" %s \" already exists in the library%n", authorsName, bookName);
