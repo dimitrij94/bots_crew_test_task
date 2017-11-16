@@ -1,0 +1,1 @@
+java -jar D:/Projects/db_image_storage/bots_crew_test_task/target/bots_crew_test_task-1.0-SNAPSHOT.jar
