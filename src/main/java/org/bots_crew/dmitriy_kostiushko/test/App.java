@@ -3,10 +3,10 @@ package org.bots_crew.dmitriy_kostiushko.test;
 import org.bots_crew.dmitriy_kostiushko.test.controllers.UserCommandsController;
 import org.bots_crew.dmitriy_kostiushko.test.service.BookShelfService;
 import org.bots_crew.dmitriy_kostiushko.test.service.H2DatabaseConnector;
+import org.bots_crew.dmitriy_kostiushko.test.service.RealCommandLineService;
 
-import java.io.*;
-import java.nio.charset.Charset;
-import java.util.Arrays;
+import java.io.Console;
+import java.io.IOException;
 
 /**
  * Hello world!
@@ -20,7 +20,26 @@ public class App {
             "To delete book from the library use command remove book and follow instructions %n" +
             "Thank you. %n";
 
-    public static void testConverString() throws IOException {
+
+    public static void main(String[] args) throws IOException {
+        Console console = System.console();
+        //testConverString(); // tests how the string is converted from cyrillic
+        H2DatabaseConnector connector = new H2DatabaseConnector();
+        BookShelfService bookShelfService = new BookShelfService(connector);
+        RealCommandLineService commandLineService = new RealCommandLineService();
+        commandLineService.setConsole(console);
+        UserCommandsController controller = new UserCommandsController(bookShelfService, commandLineService);
+
+        if (console == null) {
+            System.out.println("Application must be started inside of the command line");
+            System.exit(1);
+        }
+
+        console.format(greetingMessage);
+        controller.readCmd();
+    }
+
+/*    public static void testConverString() throws IOException {
 
         System.out.println("Default charset: " +
                 Charset.defaultCharset().name());
@@ -37,21 +56,5 @@ public class App {
         out.print("--->" + s + "<----\n");
         out.print("--->" + line + "<----\n");
     }
-
-
-    public static void main(String[] args) throws IOException {
-        //testConverString();
-        H2DatabaseConnector connector = new H2DatabaseConnector();
-        BookShelfService bookShelfService = new BookShelfService(connector);
-        UserCommandsController controller = new UserCommandsController(bookShelfService);
-        Console console = System.console();
-
-        if (console == null) {
-            System.out.println("Application must be started inside of the command line");
-            System.exit(1);
-        }
-
-        console.format(greetingMessage);
-        controller.readCmd(console);
-    }
+*/
 }

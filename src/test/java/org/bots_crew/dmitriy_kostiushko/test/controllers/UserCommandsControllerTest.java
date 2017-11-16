@@ -1,37 +1,77 @@
 package org.bots_crew.dmitriy_kostiushko.test.controllers;
 
 import junit.framework.TestCase;
+import org.bots_crew.dmitriy_kostiushko.test.enteties.Book;
 import org.bots_crew.dmitriy_kostiushko.test.service.BookShelfService;
 import org.bots_crew.dmitriy_kostiushko.test.service.H2DatabaseConnector;
+import org.bots_crew.dmitriy_kostiushko.test.service.MockCommandLineService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class UserCommandsControllerTest extends TestCase {
-    UserCommandsController controller;
+    private UserCommandsController controller;
+    private MockCommandLineService mockCommandLineService;
+    private BookShelfService service;
 
     public void setUp() throws Exception {
         super.setUp();
         H2DatabaseConnector connector = new H2DatabaseConnector();
-        BookShelfService service = new BookShelfService(connector);
-        controller = new UserCommandsController(service);
+        service = new BookShelfService(connector);
+        mockCommandLineService = new MockCommandLineService();
+        controller = new UserCommandsController(service, mockCommandLineService);
+        this.service.clearTheDB();
     }
 
-    private String simulateConsoleInput(String data) {
-        InputStream stdin = System.in;
-        try {
-            System.setIn(new ByteArrayInputStream(data.getBytes()));
-            Scanner scanner = new Scanner(System.in);
-            return scanner.nextLine();
-        } finally {
-            System.setIn(stdin);
+
+    public void testAddBookCommand() throws Exception {
+
+        String commandFormatter = "add %s \"%s\"";
+        String[] testBooks = {"War and peace", "война и мир", "Війна та мир"};
+        String[] testAuthors = {"Leonid Tolstoy", "Лев Толстой", ""};
+
+        for (int i = 0; i < testBooks.length; i++) {
+            this.mockCommandLineService.queueTheCommand(String.format(commandFormatter, testAuthors[i], testBooks[i]));
         }
+
+        //the last command will break the readCmd cycle
+        this.mockCommandLineService.queueTheCommand("exit");
+        this.controller.readCmd();
+
+        for (int i = 0; i < testBooks.length; i++) {
+            String testAuthor = testAuthors[i];
+            testAuthor = testAuthor.equals("") ? "Unknown" : testAuthor;
+            List<Book> foundBooks = this.service.findByNameAndAuthor(testBooks[i], testAuthor);
+            assertFalse(foundBooks.isEmpty());
+        }
+        this.service.clearTheDB();
     }
 
+    public void testRemoveBookCommand() throws Exception {
+        String commandFormatter = "remove %s";
+        String[] testBooks = {"War and peace", "война и мир", "Війна та мир"};
+        String[] testAuthors = {"Leonid Tolstoy", "Лев Толстой", ""};
+        service.save("War and peace", "Unknown");
+
+        for (int i = 0; i < testBooks.length; i++) {
+            service.save(testBooks[i], testAuthors[i]);
+            this.mockCommandLineService.queueTheCommand(String.format(commandFormatter, testBooks[i]));
+            if (i == 0) this.mockCommandLineService.queueTheCommand("1");
+        }
+
+        //the last command will break the readCmd cycle
+        this.mockCommandLineService.queueTheCommand("exit");
+        this.controller.readCmd();
+
+
+        this.service.clearTheDB();
+
+    }
 
     public void testRemoveBookPattern() {
         Pattern removeBookPattern = this.controller.getDeleteCommandCompiler();
@@ -69,4 +109,17 @@ public class UserCommandsControllerTest extends TestCase {
         }
 
     }
+
+    private String simulateConsoleInput(String data) {
+        InputStream stdin = System.in;
+        try {
+            System.setIn(new ByteArrayInputStream(data.getBytes()));
+            Scanner scanner = new Scanner(System.in);
+            return scanner.nextLine();
+        } finally {
+            System.setIn(stdin);
+        }
+    }
+
+
 }

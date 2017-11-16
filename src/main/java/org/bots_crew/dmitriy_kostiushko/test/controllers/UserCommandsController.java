@@ -3,18 +3,18 @@ package org.bots_crew.dmitriy_kostiushko.test.controllers;
 import org.bots_crew.dmitriy_kostiushko.test.dto.UserCommand;
 import org.bots_crew.dmitriy_kostiushko.test.enteties.Book;
 import org.bots_crew.dmitriy_kostiushko.test.service.BookShelfService;
+import org.bots_crew.dmitriy_kostiushko.test.service.CommandLineInterface;
 
-import java.io.Console;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class UserCommandsController {
-    private Console console;
+    private boolean run = true;
     private BookShelfService bookShelfService;
     private UserCommand[] userCommands = new UserCommand[5];
+    private CommandLineInterface console;
 
     private Pattern singleDigitPattern = Pattern.compile("^(?<num>\\d+)$");
 
@@ -39,8 +39,9 @@ public class UserCommandsController {
 
     private final String confirmationMessage = "(y/n)";
 
-    public UserCommandsController(BookShelfService bookShelfService) {
+    public UserCommandsController(BookShelfService bookShelfService, CommandLineInterface consoleIn) {
         this.bookShelfService = bookShelfService;
+        this.console = consoleIn;
         fillComandsHashTable();
     }
 
@@ -58,26 +59,24 @@ public class UserCommandsController {
         return out;
     }
 
-    public void readCmd(Console console) {
-        this.console = console;
-        //Scanner consoleInScanner = new Scanner(new InputStreamReader(System.in, StandardCharsets.UTF_8));
-        Scanner consoleInScanner = new Scanner(System.in, "Windows-1251");
-        String command = consoleInScanner.nextLine();
-
-        boolean matchFound = false;
-        for (UserCommand userCommand : userCommands) {
-            Pattern pattern = userCommand.getCommandPattern();
-            Matcher matcher = pattern.matcher(command);
-            if (matcher.matches()) {
-                matchFound = true;
-                userCommand.getCommandResponse().responceToTheCmd(matcher);
+    public void readCmd() {
+        String command = console.getUserCommand();
+        while (run) {
+            boolean matchFound = false;
+            for (UserCommand userCommand : userCommands) {
+                Pattern pattern = userCommand.getCommandPattern();
+                Matcher matcher = pattern.matcher(command);
+                if (matcher.matches()) {
+                    matchFound = true;
+                    userCommand.getCommandResponse().responceToTheCmd(matcher);
+                }
             }
+            if (!matchFound) {
+                console.format("Sorry i cannot understand the command, please try again.%n");
+                this.responseToHelp(null);
+            }
+            readCmd();
         }
-        if (!matchFound) {
-            console.format("Sorry i cannot understand the command, please try again.%n");
-            this.responseToHelp(null);
-        }
-        readCmd(console);
     }
 
     private void responseToHelp(Matcher matcher) {
@@ -113,7 +112,6 @@ public class UserCommandsController {
         String authorsName = null;
         bookName = matcher.group("book");
         authorsName = matcher.group("author");
-
         boolean authorsNameIsEmptyOrNull = authorsName == null || authorsName.isEmpty();
         boolean bookNameIsEmptyOrNull = bookName == null || bookName.isEmpty();
 
@@ -179,7 +177,7 @@ public class UserCommandsController {
     }
 
     private int getSingleNumInput() {
-        String numInput = console.readLine();
+        String numInput = console.getUserCommand();
         Matcher numMathcer = singleDigitPattern.matcher(numInput);
         if (numMathcer.matches()) {
             return Integer.valueOf(numMathcer.group("num"));
@@ -193,7 +191,7 @@ public class UserCommandsController {
     private boolean getConsoleConfirmation(String message) {
         console.format(message);
         console.format(confirmationMessage);
-        String answer = console.readLine();
+        String answer = console.getUserCommand();
         if (answer.equals("y")) return true;
         else if (answer.equals("n")) return false;
         else return getConsoleConfirmation(message);
@@ -202,7 +200,7 @@ public class UserCommandsController {
 
     private void exitFromProgram(Matcher matcher) {
         console.format("Bye =)%n");
-        System.exit(1);
+        this.run = false;
     }
 
 
