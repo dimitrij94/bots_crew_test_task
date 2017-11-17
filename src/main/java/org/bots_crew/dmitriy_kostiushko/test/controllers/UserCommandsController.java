@@ -64,8 +64,8 @@ public class UserCommandsController {
     }
 
     public void readCmd() {
-        String command = console.getUserCommand();
         while (run) {
+            String command = console.getUserCommand();
             boolean matchFound = false;
             for (UserCommand userCommand : userCommands) {
                 Pattern pattern = userCommand.getCommandPattern();
