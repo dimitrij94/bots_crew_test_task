@@ -52,6 +52,26 @@ public class UserCommandsControllerTest extends TestCase {
         this.service.clearTheDB();
     }
 
+    public void testEditBookCommand() {
+        String commandFormatter = "edit %s";
+        String[] testBooks = {"War and peace", "War and peace", "Війна та мир"};
+        String[] testAuthors = {"Leonid Tolstoy", "Лев Толстой", ""};
+        String[] newTestBooks = {"Смерть Ивана Иллича", "The death of Ivan Ilyich", "Anna Karenina"};
+        for (int i = 0; i < testBooks.length; i++) {
+            service.save(testBooks[i], testAuthors[i]);
+            this.mockCommandLineService.queueTheCommand(String.format(commandFormatter, testBooks[i]));
+            if (i == 0) this.mockCommandLineService.queueTheCommand("1");
+            this.mockCommandLineService.queueTheCommand(newTestBooks[i]);
+        }
+
+        this.mockCommandLineService.queueTheCommand("exit");
+        this.controller.readCmd();
+        for (String newBooksNames : newTestBooks) {
+            assertFalse(service.findByName(newBooksNames).isEmpty());
+        }
+        this.service.clearTheDB();
+    }
+
     public void testRemoveBookCommand() throws Exception {
         String commandFormatter = "remove %s";
         String[] testBooks = {"War and peace", "война и мир", "Війна та мир"};

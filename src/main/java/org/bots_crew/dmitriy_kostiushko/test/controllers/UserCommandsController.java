@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 public class UserCommandsController {
     private boolean run = true;
     private BookShelfService bookShelfService;
-    private UserCommand[] userCommands = new UserCommand[5];
+    private UserCommand[] userCommands = new UserCommand[6];
     private CommandLineInterface console;
 
     private Pattern singleDigitPattern = Pattern.compile("^(?<num>\\d+)$");
@@ -37,6 +37,9 @@ public class UserCommandsController {
     private Pattern exitCommandCompiler =
             Pattern.compile("exit", Pattern.CASE_INSENSITIVE);
 
+    private Pattern editBookCommandCompiler =
+            Pattern.compile("edit\\s+(?<book>.+)");
+
     private final String confirmationMessage = "(y/n)";
 
     public UserCommandsController(BookShelfService bookShelfService, CommandLineInterface consoleIn) {
@@ -51,6 +54,7 @@ public class UserCommandsController {
         userCommands[2] = new UserCommand(deleteCommandCompiler, this::responseToDelBook);
         userCommands[3] = new UserCommand(exitCommandCompiler, this::exitFromProgram);
         userCommands[4] = new UserCommand(helpCommandCompiler, this::responseToHelp);
+        userCommands[5] = new UserCommand(editBookCommandCompiler, this::responseToEditBook);
     }
 
     public String convertWindows1251ToUtf8String(String winStr) {
@@ -94,6 +98,28 @@ public class UserCommandsController {
 
         console.format("4. Type exit to exit from the program.%n");
 
+    }
+
+
+    private void responseToEditBook(Matcher matcher) {
+        String bookName = matcher.group("book");
+        List<Book> foundBooks = bookShelfService.findByName(bookName);
+        if (foundBooks.isEmpty()) {
+            console.format("Sorry no books with this name have bean found in the library%n");
+            return;
+        }
+        Book selectedBook;
+        if (foundBooks.size() > 1) {
+            console.format("Please enter the number of the book that you would like to edit%n");
+            selectedBook = multipleBookSelection(foundBooks);
+        } else {
+            selectedBook = foundBooks.get(0);
+        }
+        console.format("Please enter the new name of the book%n");
+        String newName = console.getUserCommand();
+        bookShelfService.editBookName(selectedBook.getId(), newName);
+        String authorsName = selectedBook.getAuthorName();
+        console.format("Book %s \"%s\" was renamed to %s \"%s\"%n", authorsName, selectedBook.getBookName(), authorsName, newName);
     }
 
     private void responseToViewAll(Matcher matcher) {
@@ -152,17 +178,21 @@ public class UserCommandsController {
             console.format("No books were found with name %s.%n", bookName);
         else if (foundBooks.size() > 1) {
             console.format("Please enter the number of the book you would like to delete.%n");
-            for (int i = 0; i < foundBooks.size(); i++) {
-                Book book = foundBooks.get(i);
-                console.format("%d: author: %s \"%s\" %n", i + 1, book.getAuthorName(), book.getBookName());
-            }
-            int selectedNumber = readArrayIndex(foundBooks.size());
-            Book selectedBook = foundBooks.get(selectedNumber - 1);
+            Book selectedBook = this.multipleBookSelection(foundBooks);
             String selectedBookName = selectedBook.getBookName();
             String selectedBookAuthor = selectedBook.getAuthorName();
             this.bookShelfService.deleteBook(selectedBookName, selectedBookAuthor);
             console.format("Book %s of author %s was removed. %n", selectedBookName, selectedBookAuthor);
         }
+    }
+
+    private Book multipleBookSelection(List<Book> foundBooks) {
+        for (int i = 0; i < foundBooks.size(); i++) {
+            Book book = foundBooks.get(i);
+            console.format("%d: author: %s \"%s\" %n", i + 1, book.getAuthorName(), book.getBookName());
+        }
+        int selectedNumber = readArrayIndex(foundBooks.size());
+        return foundBooks.get(selectedNumber - 1);
     }
 
     private int readArrayIndex(int maxIndex) {

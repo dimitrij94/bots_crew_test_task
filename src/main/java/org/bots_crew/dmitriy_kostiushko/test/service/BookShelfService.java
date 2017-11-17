@@ -19,6 +19,7 @@ public class BookShelfService {
     private final String findByNameSQL = "SELECT * FROM BookShelf WHERE book_name=?";
     private final String findByNameAndAuthorSQL = "SELECT * FROM BookShelf WHERE book_name=? AND author_name=?";
     private final String deleteAllSQL = "DELETE FROM BookShelf";
+    private String editBookCommanSQL = "UPDATE BookShelf SET book_name=? WHERE id=?";
 
     public BookShelfService(H2DatabaseConnector connector) {
         this.connector = connector;
@@ -126,5 +127,17 @@ public class BookShelfService {
             e.printStackTrace();
         }
 
+    }
+
+
+    public void editBookName(int id, String newName) {
+        try (Connection con = this.connector.establishConnection();
+             PreparedStatement editBookStatement = con.prepareStatement(editBookCommanSQL)) {
+            editBookStatement.setString(1, newName);
+            editBookStatement.setInt(2, id);
+            editBookStatement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
