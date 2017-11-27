@@ -7,36 +7,50 @@ import org.bots_crew.dmitriy_kostiushko.test.service.RealCommandLineService;
 
 import java.io.Console;
 import java.io.IOException;
+import java.sql.SQLException;
 
 /**
  * Hello world!
  */
 public class App {
-
+    private static H2DatabaseConnector connector;
 
     private final static String greetingMessage = "Welcome to the BookShelf application.%n" +
             "To view books in your library use command: all books. %n" +
-            "To add a new book to the library please use command new book and follow instructions. %n" +
-            "To delete book from the library use command remove book and follow instructions %n" +
+            "To add a new book to the library please use command:\"add authors name \"book name\"\" and follow instructions. %n" +
+            "To delete book from the library use command \"remove book name\" and follow instructions %n" +
             "Thank you. %n";
 
 
     public static void main(String[] args) throws IOException {
         Console console = System.console();
-        //testConverString(); // tests how the string is converted from cyrillic
-        H2DatabaseConnector connector = new H2DatabaseConnector();
-        BookShelfService bookShelfService = new BookShelfService(connector);
-        RealCommandLineService commandLineService = new RealCommandLineService();
-        commandLineService.setConsole(console);
-        UserCommandsController controller = new UserCommandsController(bookShelfService, commandLineService);
-
         if (console == null) {
             System.out.println("Application must be started inside of the command line");
-            System.exit(1);
+            return;
         }
+
+        connector = new H2DatabaseConnector();
+        Runtime.getRuntime().addShutdownHook(new Thread(App::closeApplication));
+
+        BookShelfService bookShelfService = new BookShelfService(connector);
+
+        RealCommandLineService commandLineService = new RealCommandLineService();
+        commandLineService.setConsole(console);
+
+        UserCommandsController controller = new UserCommandsController(bookShelfService, commandLineService);
+
 
         console.format(greetingMessage);
         controller.readCmd();
+    }
+
+    private static void closeApplication() {
+        try {
+            System.out.println("Connection closed");
+            connector.closeConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 /*    public static void testConverString() throws IOException {

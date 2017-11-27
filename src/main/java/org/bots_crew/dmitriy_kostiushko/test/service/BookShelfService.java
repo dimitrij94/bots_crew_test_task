@@ -20,15 +20,17 @@ public class BookShelfService {
     private final String findByNameAndAuthorSQL = "SELECT * FROM BookShelf WHERE book_name=? AND author_name=?";
     private final String deleteAllSQL = "DELETE FROM BookShelf";
     private String editBookCommanSQL = "UPDATE BookShelf SET book_name=? WHERE id=?";
+    private Connection connection;
 
     public BookShelfService(H2DatabaseConnector connector) {
         this.connector = connector;
+        this.connection = connector.establishConnection();
     }
 
     public Book save(String bookName, String bookAuthor) {
         try (
-                Connection connection = this.connector.establishConnection();
-                PreparedStatement saveStatement = connection.prepareStatement(saveBookSQL)
+                PreparedStatement saveStatement = this.connection
+                        .prepareStatement(saveBookSQL)
         ) {
             saveStatement.setString(1, bookName);
             saveStatement.setString(2, bookAuthor);
@@ -42,8 +44,9 @@ public class BookShelfService {
     public List<Book> findAllBooks() {
         List<Book> books = null;
         try (
-                Connection connection = this.connector.establishConnection();
-                PreparedStatement findStatement = connection.prepareStatement(findSQL);
+
+                PreparedStatement findStatement = this.connection
+                        .prepareStatement(findSQL);
                 ResultSet foundBooks = findStatement.executeQuery()
 
         ) {
@@ -57,8 +60,7 @@ public class BookShelfService {
     public List<Book> findByName(String name) {
         List<Book> books = null;
         try (
-                Connection connection = this.connector.establishConnection();
-                PreparedStatement findByNameStatement = fillFindByNameStatement(connection, name);
+                PreparedStatement findByNameStatement = fillFindByNameStatement(name);
                 ResultSet foundBooks = findByNameStatement.executeQuery()
         ) {
             findByNameStatement.setString(1, name);
@@ -69,8 +71,8 @@ public class BookShelfService {
         return books;
     }
 
-    private PreparedStatement fillFindByNameStatement(Connection con, String name) throws SQLException {
-        PreparedStatement ps = con.prepareStatement(findByNameSQL);
+    private PreparedStatement fillFindByNameStatement(String name) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement(findByNameSQL);
         ps.setString(1, name);
         return ps;
     }
@@ -92,8 +94,9 @@ public class BookShelfService {
 
     public boolean deleteBook(String name, String author) {
         try (
-                Connection connection = this.connector.establishConnection();
-                PreparedStatement deleteStatement = connection.prepareStatement(deleteSQL)
+
+                PreparedStatement deleteStatement = this.connection
+                        .prepareStatement(deleteSQL)
         ) {
             deleteStatement.setString(1, name);
             deleteStatement.setString(2, author);
@@ -106,8 +109,9 @@ public class BookShelfService {
 
     public List<Book> findByNameAndAuthor(String bookName, String authorsName) {
         try (
-                Connection connection = this.connector.establishConnection();
-                PreparedStatement findStatement = connection.prepareStatement(findByNameAndAuthorSQL)
+
+                PreparedStatement findStatement = this.connection
+                        .prepareStatement(findByNameAndAuthorSQL)
         ) {
             findStatement.setString(1, bookName);
             findStatement.setString(2, authorsName);
@@ -119,8 +123,9 @@ public class BookShelfService {
     }
 
     public void clearTheDB() {
-        try (Connection connection = this.connector.establishConnection();
-             PreparedStatement deleteAllStatement = connection.prepareStatement(deleteAllSQL)
+        try (
+                PreparedStatement deleteAllStatement = this.connection
+                        .prepareStatement(deleteAllSQL)
         ) {
             deleteAllStatement.executeUpdate();
         } catch (SQLException e) {
@@ -131,8 +136,8 @@ public class BookShelfService {
 
 
     public void editBookName(int id, String newName) {
-        try (Connection con = this.connector.establishConnection();
-             PreparedStatement editBookStatement = con.prepareStatement(editBookCommanSQL)) {
+        try (
+                PreparedStatement editBookStatement = this.connection.prepareStatement(editBookCommanSQL)) {
             editBookStatement.setString(1, newName);
             editBookStatement.setInt(2, id);
             editBookStatement.executeUpdate();
